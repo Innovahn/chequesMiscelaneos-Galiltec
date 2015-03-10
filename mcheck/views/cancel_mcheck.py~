@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data>
+		
+
+<record model="ir.ui.view" id="view_mcheck_cancel">
+           		 <field name="name">mcheck.mcheck.cancel</field>
+           		 <field name="model">mcheck.mcheck</field>
+           		 <field name="arch" type="xml">
+				  <form string="miscellaneous checks">	
+					<field name="anulation_date" string="Anultion Date"/>
+				  </form>
+			</field>
+	</record>
+
+    </data>
+</openerp>
