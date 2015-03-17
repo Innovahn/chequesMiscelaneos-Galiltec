@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_configbank,conf.banks,model_banks,group_conf_banks,1,1,1,1
+access_checkbooks,checkbooks,model_checkbooks,group_conf_banks,1,1,1,1
+access_journal,account.journal,model_account_journal,group_conf_banks,1,1,1,1
+

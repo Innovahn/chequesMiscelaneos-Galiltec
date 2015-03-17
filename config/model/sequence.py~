@@ -1,0 +1,17 @@
+from openerp.osv import fields, osv
+from datetime import datetime
+import locale
+import pytz
+from openerp.tools.translate import _
+
+
+
+class inh_sequence(osv.osv):
+	_inherit = 'ir.sequence'
+	_columns = {
+		'seq_type':fields.many2one('ir.sequence.type',string="Sequency Type",help='Select a type for this sequence'),
+	
+	}
+	_defaults = {
+	'checkmiscelaneous' : False,
+		} 

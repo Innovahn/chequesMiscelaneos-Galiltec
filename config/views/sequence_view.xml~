@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data>
+<record model="ir.ui.view" id="view_sequence_form_inh">
+    <field name="name">ir.sequence.form.inherit1</field>
+    <field name="model">account.journal</field>
+    <field name="inherit_id" ref="account.view_account_journal_form"/>
+    <field name="arch" type="xml">
+	<xpath expr="//field[@name='currency']" position="after" string='Allow Multi-Sequence'>
+		<field name="allow_multi_sequence" />
+	</xpath>
+	<xpath expr="//page[@string='Cash Registers']" position="after">
+		<page string="Sequences" attrs="{'invisible': [('allow_multi_sequence','!=',True)]}">
+				<group >
+					 <separator  string="Sequences"/>
+				    <field name="sequence_ids" string=' '>
+					 
+					<tree>
+					<field name="name" />
+					<field name="prefix" />
+					<field name="suffix" />
+				
+					</tree>
+				    </field>
+				</group>
+		</page>
+	</xpath>
+
+    </field>
+</record>
+    </data>
+</openerp>

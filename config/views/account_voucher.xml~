@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data>
+<record model="ir.ui.view" id="view_account_invoice_paymethod_form1">
+    <field name="name">account.voucher.form.paymethod.inherit4</field>
+    <field name="model">account.voucher</field>
+    <field name="inherit_id" ref="account_voucher.view_vendor_receipt_dialog_form"/>
+    <field name="arch" type="xml">
+
+	
+	
+	<xpath expr="//field[@name='journal_id']" position="after" string='Payment type'>
+		<field name="pay_method_type" on_change="onchange_journal_id(journal_id,pay_method_type	)"/>
+		<field name="next_number" size="50px"/>
+		<field name="number_doc" invisible="1"/>
+		
+	</xpath>
+	
+    </field>
+</record>
+    </data>
+</openerp>

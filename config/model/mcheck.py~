@@ -1,0 +1,10 @@
+# -*- coding: utf-8 -*-
+
+from openerp.osv import fields, osv
+from datetime import datetime
+
+class m_mcheck(osv.Model):
+	_inherit = 'mcheck.mcheck'
+	_columns = {
+		'sequence_id':fields.many2one('ir.sequence','Sequences'),
+	}

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data>
+<record model="ir.ui.view" id="view_pos_account_journal_form1">
+    <field name="name">account.journal.form.inherit4</field>
+    <field name="model">account.journal</field>
+    <field name="inherit_id" ref="account.view_account_journal_form"/>
+    <field name="arch" type="xml">
+	<xpath expr="//field[@name='currency']" position="after" string='debit and credit'>
+		<field name="allow_creditdebit" />
+	</xpath>
+
+    </field>
+</record>
+    </data>
+</openerp>

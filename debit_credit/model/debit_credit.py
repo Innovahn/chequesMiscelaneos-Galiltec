@@ -10,11 +10,10 @@ import time
 from itertools import ifilter
 class mcheck(osv.Model):
 	_order = 'date desc'
-	_name = 'mcheck.mcheck'
+	_name = 'debit.credit'
 
-	#this function anullate a check creating another transaction moving detit to credit and viceverse
+
 	def cancel_voucher(self, cr, uid, ids, context=None):
-		#041802854842570
 		reconcile_pool = self.pool.get('account.move.reconcile')
 		chck_memo = ''
 		for mcheck in self.browse(cr,uid,ids,context=context):
@@ -32,13 +31,10 @@ class mcheck(osv.Model):
 			for obj in check_move_obj:
 				move_values['date'] = datetime.now()
 				move_values['journal_id'] = obj['journal_id'].id
-				if mcheck.doc_type=='check':
-					move_values['name'] = self.journal_number(cr,uid,ids,mcheck.journal_id.id,'check_cancel',context=context)
-				else:
-					move_values['name'] = self.journal_number(cr,uid,ids,mcheck.journal_id.id,'transaction_cancel',context=context)
+				move_values['name']=str(obj['name'])+str('/Cancel')
 				move_values['period_id']=account_period_obj.id
 				move_values['ref']=obj['ref']
-				move_values['narration'] = 'Annulment of check '+ str(mcheck.number) + ' from ' + mcheck.date
+				move_values['narration'] = 'Annulment of check '+mcheck.number + ' from ' + mcheck.date
 				
 			move_id = check_move.create(cr,uid,move_values)
 			move_l_values = {}
@@ -46,7 +42,7 @@ class mcheck(osv.Model):
 			for lines2 in move_l_obj:
 				move_l_values['name'] = lines2['name']
 				move_l_values['account_id'] = lines2['account_id'].id
-				move_l_values['mcheck_id'] = lines2['mcheck_id'].id
+				move_l_values['credit_debit_id'] = lines2['credit_debit_id'].id
 				move_l_values['analytic_account_id']= lines2['analytic_account_id'].id
 				move_l_values['move_id'] = move_id		
 				move_l_values['currency_id'] = lines2['currency_id'].id
@@ -65,16 +61,21 @@ class mcheck(osv.Model):
 				move_line.create(cr,uid,move_l_values)
 			for lin in mcheck.mcheck_ids:
 				if lin.name:
-					new_name = 'Annulment of check '+str(mcheck.number)
+					new_name = 'Annulment of check '+mcheck.number+ ' ' + str(lin.name)
 				else:
-					new_name = 'Annulment of check '+str(mcheck.number)
+					new_name = 'Annulment of check '+mcheck.number
 				self.write(cr, uid, ids,{'mcheck_ids': [(1,lin.id,{'name':new_name})]}, context=context)
 			if mcheck.name:
 				chck_memo = mcheck.name
 			else:
-				chck_memo = 'Annulment of check '+ str(mcheck.number)
+				chck_memo = 'Annulment of check '+mcheck.number
 		return self.write(cr, uid, ids, {'state':'anulated','name':chck_memo}, context=context)
 				
+	
+
+			
+	
+
 	def action_validate(self, cr, uid, ids, context=None):
 		corrency_rate = 0.0
 		model_currency_rate = None
@@ -84,6 +85,7 @@ class mcheck(osv.Model):
 			model_user = self.pool.get('res.users')
 			obj_user = model_user.browse(cr,uid,model_user.search(cr,uid,[('id' , '=', uid )],context=None),context=context)
 			model_company = self.pool.get('res.company')
+			
 			obj_company = model_company.browse(cr,uid,model_company.search(cr,uid,[('id' , '=', obj_user.company_id.id )],context=None),context=context)
 			
 			
@@ -133,147 +135,120 @@ class mcheck(osv.Model):
 					if line.type=='cr':
 						totalc+=line.amount
 				
-				if ((totald-totalc) > 0 and flag==True):
-					totalc_curr = 0
-					totald_curr = 0
-					totald=0
-					totalc=0
-					lines_array=[]
-					name = "/"
-					if mcheck.number:
-						name=mcheck.number
-					amove_obj= self.pool.get('account.move')
-					amovedata={}
-					amovedata['journal_id']=mcheck.journal_id.id
-					amovedata['name']=name
-					amovedata['date']=mcheck.date
-					amovedata['period_id']=account_period_obj.id
-					amovedata['ref']=mcheck.reference					
-					seq_obj = self.pool.get('ir.sequence')
+				totalc_curr = 0
+				totald_curr = 0
+				totald=0
+				totalc=0
+				lines_array=[]
+				name = "/"
+				if mcheck.number:
+					name=mcheck.number
+				amove_obj= self.pool.get('account.move')
+				amovedata={}
+				amovedata['journal_id']=mcheck.journal_id.id
+				amovedata['name']=name
+				amovedata['date']=mcheck.date
+				amovedata['period_id']=account_period_obj.id
+				amovedata['ref']=mcheck.reference					
+				seq_obj = self.pool.get('ir.sequence')
 
-					move_id= amove_obj.create(cr,uid,amovedata)
-					mline_obj= self.pool.get('account.move.line')
-					flag2=True
-					for lines in mcheck.mcheck_ids:
-						lines_col={}
-						lines_col['move_id']=move_id
-						lines_col['company_id']=lines.company_id.id
-						lines_col['account_id']=lines.account_id.id
-						lines_col['name']=lines.name  or '/'
-						if lines.type == 'dr':
-							lines_col['credit']=0
-							lines_col['debit'] = round((lines.amount * (1/select_journal_currency_rate))*currency_rate,dec_prec.digits)
-
-							totald+=lines_col['debit']
-							if select_journal_currency_id == currency_id:#si el currency de 
-								#lines_col['amount_currency'] = None
-								#lines_col['currency_id'] = None
-								totald_curr+=lines_col['debit']
-							else:
-								lines_col['amount_currency']=(lines.amount * (1/select_journal_currency_rate))*select_journal_currency_rate#shame on me, hahahaha 1(x/y)y=x
-								lines_col['currency_id'] = select_journal_currency_id
-								totald_curr+=lines.amount
-							
-														
+				move_id= amove_obj.create(cr,uid,amovedata)
+				mline_obj= self.pool.get('account.move.line')
+				for lines in mcheck.mcheck_ids:
+					lines_col={}
+					lines_col['move_id']=move_id
+					lines_col['account_id']=lines.account_id.id
+					lines_col['name']=lines.name  or '/'
+					if mcheck.doc_type == 'debit':
+						lines_col['credit']=0
+						lines_col['debit'] = round((lines.amount * (1/select_journal_currency_rate))*currency_rate,dec_prec.digits)
+						totald+=lines_col['debit']
+						if select_journal_currency_id == currency_id:#si el currency de 
+							totald_curr+=lines_col['debit']
 						else:
-							lines_col['debit']=0
-							lines_col['credit'] = round(((lines.amount * (1/select_journal_currency_rate))*currency_rate),dec_prec.digits)
-							totalc+=lines_col['credit']  #total of debit multiplicated by default
-							if select_journal_currency_id == currency_id:
-								#lines_col['currency_id'] = None
-								#lines_col['amount_currency']=None
-								totalc_curr+=lines_col['credit']
-							else:
-								lines_col['amount_currency'] = (lines.amount * (1/select_journal_currency_rate))*(-1)*select_journal_currency_rate
-								lines_col['currency_id'] = select_journal_currency_id
-								totalc_curr+=lines.amount
-						lines_col['move_id']=move_id
-						lines_col['date']=mcheck.date
-						lines_col['mcheck_id']=mcheck.id
-						lines_col['analytic_account_id']=lines.chqmanalitics.id
-						lines_array.append(lines_col)#adding movline to an array
-					if mcheck.commission > 0:#for commission lines creation
-						
-				
-						for i in [1,2]:				
-			 				com_line = {}
-							com_line['move_id']=move_id
-							com_line['name']='/Commission/'+str(mcheck.name)
-							com_line['amount_currency'] = 0
-							com_line['currency_id'] = None
-							if i==1:
-								
-								com_line['account_id']=mcheck.journal_id.default_credit_account_id.id
-								if not select_journal_currency_id == currency_id:
-									com_line['amount_currency']=(mcheck.commission * (1/select_journal_currency_rate))*select_journal_currency_rate	
-									com_line['currency_id'] = select_journal_currency_id
-								com_line['debit']=0
-								com_line['credit']=round(((mcheck.commission * (1/select_journal_currency_rate))*currency_rate),dec_prec.digits) 
-							else:
-								if mcheck.journal_id.commission_account:
-									com_line['account_id']=mcheck.journal_id.commission_account.id
-								else:
-									com_line['account_id']=mcheck.journal_id.default_debit_account_id.id
-								if not select_journal_currency_id == currency_id:
-									com_line ['amount_currency'] = (mcheck.commission * (1/select_journal_currency_rate))*(-1)*select_journal_currency_rate
-									com_line ['currency_id'] = select_journal_currency_id
-								com_line['debit']=round((mcheck.commission * (1/select_journal_currency_rate))*currency_rate,dec_prec.digits)
-								com_line['credit']=0
-							
-							lines_array.append(com_line)
-					mline_data={}
-					mline_data['move_id']=move_id
-					mline_data['name'] = mcheck.name
-					mline_data['credit']= totald-totalc
+							lines_col['amount_currency']=(lines.amount * (1/select_journal_currency_rate))*select_journal_currency_rate
+							lines_col['currency_id'] = select_journal_currency_id
+							totald_curr+=lines.amount
+														
+					elif mcheck.doc_type == 'credit' or mcheck.doc_type == 'deposit' :
+						lines_col['debit']=0
+						lines_col['credit'] = round(((lines.amount * (1/select_journal_currency_rate))*currency_rate),dec_prec.digits)
+						totalc+=lines_col['credit']  #total of debit multiplicated by default
+						if select_journal_currency_id == currency_id:
+							totalc_curr+=lines_col['credit']
+						else:
+							lines_col['amount_currency'] = (lines.amount * (1/select_journal_currency_rate))*(-1)*select_journal_currency_rate
+							lines_col['currency_id'] = select_journal_currency_id
+							totalc_curr+=lines.amount
+					lines_col['move_id']=move_id
+					lines_col['date']=mcheck.date
+					lines_col['credit_debit_id']=mcheck.id
+					lines_col['analytic_account_id']=lines.chqmanalitics.id
+					lines_array.append(lines_col)
+				mline_data={}
+				mline_data['move_id']=move_id
+				mline_data['name'] = mcheck.name
+				if mcheck.doc_type == 'debit':
+					mline_data['credit']=totald 
 					mline_data['debit']=0
-					mline_data['date']=mcheck.date
-					if not (currency_id == select_journal_currency_id):
-						mline_data['currency_id'] = select_journal_currency_id
-						mline_data['amount_currency']=((totald_curr-totalc_curr) * (1/select_journal_currency_rate)*select_journal_currency_rate)*(-1)
-						
-					
-					mline_data['account_id']=mcheck.journal_id.default_credit_account_id.id
-					mline_data['mcheck_id']=mcheck.id
-					if round(totald_curr-totalc_curr,dec_prec.digits ) != round(mcheck.total,dec_prec.digits ):
-						raise osv.except_osv(_('you still have '+str(mcheck.total-(totald_curr-totalc_curr))),_("Try to make it fit") )
-					line_id= mline_obj.create(cr,uid,mline_data)
-					for lines2 in lines_array:
-						mline_obj.create(cr,uid,lines2)
-					
-					if currency_id == select_journal_currency_id:
-						select_journal_currency_rate = False
-					for lin in mcheck.mcheck_ids:
-						if not lin.name:
-							new_name = mcheck.name
-							self.write(cr, uid, ids,{'mcheck_ids': [(1,lin.id,{'name':new_name})]}, context=context)
-					n=self.journal_number(cr,uid,mcheck.id,mcheck.journal_id.id,mcheck.doc_type,context=None)
-					try:
-						journa_obj = self.pool.get('account.journal')
-						diario = journa_obj.browse(cr,uid,journa_obj.search(cr,uid,[('id','=',mcheck.journal_id.id)],context=None),context=context)
-						seq_id=0
-						fl=False
-						for sq in diario.sequence_ids:
-							if sq.code==mcheck.doc_type:
-								seq_id=sq.id
-								fl=True
-						if fl:
-							cr.execute("UPDATE ir_sequence SET number_next=number_next+number_increment WHERE id=%s ", (seq_id,))
-						else:						
-							raise osv.except_osv(_('Error !'),_("Could't update the sequence for this journal!"))
-						
-					except ValueError:
-						raise osv.except_osv(_('Update Error!'),_("Sequence value was not updated") )
-
-					mchecks_model = self.pool.get('mcheck.mcheck')
-					mchecks_obj=mchecks_model.browse(cr,uid,mchecks_model.search(cr,uid,[('state','=','draft' )],context=None),context=context)
-					nn=self.journal_number(cr,uid,mcheck.id,mcheck.journal_id.id,mcheck.doc_type,context=None)
-					for draft_checks in mchecks_obj:
-						mchecks_model.write(cr, uid, draft_checks.id, {'number':nn}, context=context)
-					return self.write(cr, uid, ids, {'state':'validated','number':n,'move_id':move_id, 'actual_comp_rate': currency_rate,'actual_sec_curr_rate': select_journal_currency_rate }, context=context)
 				else:
-					raise osv.except_osv(_('amount total is 0'),_("the value of total is 0") )
-			else:
-				raise osv.except_osv(_('No lines'),_("select more than one line") )
+					mline_data['credit']=0
+					mline_data['debit']=totalc 
+				
+					
+				mline_data['date']=mcheck.date
+				if not (currency_id == select_journal_currency_id):
+					mline_data['currency_id'] = select_journal_currency_id
+					mline_data['amount_currency']=((totald_curr-totalc_curr) * (1/select_journal_currency_rate)*select_journal_currency_rate)*(-1)
+						
+					
+				mline_data['account_id']=mcheck.journal_id.default_credit_account_id.id
+				mline_data['credit_debit_id']=mcheck.id
+				if mcheck.doc_type == 'debit':
+					if round(totald_curr,dec_prec.digits ) != round(mcheck.total,dec_prec.digits ):
+						raise osv.except_osv(_('you still have '+str(mcheck.total-(totald_curr))),_("Try to make it fit") )
+				else:
+					if round(totalc_curr,dec_prec.digits ) != round(mcheck.total,dec_prec.digits ):
+						raise osv.except_osv(_('you still have '+str(mcheck.total-(totalc_curr))),_("Try to make it fit") )
+				
+					
+				line_id= mline_obj.create(cr,uid,mline_data)
+				for lines2 in lines_array:
+					mline_obj.create(cr,uid,lines2)
+					
+				if currency_id == select_journal_currency_id:
+					select_journal_currency_rate = False
+				for lin in mcheck.mcheck_ids:
+					if not lin.name:
+						new_name = mcheck.name
+						self.write(cr, uid, ids,{'mcheck_ids': [(1,lin.id,{'name':new_name})]}, context=context)
+				n=self.journal_number(cr,uid,mcheck.id,mcheck.journal_id.id,mcheck.doc_type,context=None)
+				try:
+					journa_obj = self.pool.get('account.journal')
+					diario = journa_obj.browse(cr,uid,journa_obj.search(cr,uid,[('id','=',mcheck.journal_id.id)],context=None),context=context)
+					seq_id=0
+					fl=False
+					for sq in diario.sequence_ids:
+						if sq.code==mcheck.doc_type:
+							seq_id=sq.id
+							fl=True
+					if fl:
+						cr.execute("UPDATE ir_sequence SET number_next=number_next+number_increment WHERE id=%s ", (seq_id,))
+					else:						
+						raise osv.except_osv(_('Error !'),_("Could't update the sequence for this journal!"))
+						
+				except ValueError:
+					raise osv.except_osv(_('Update Error!'),_("Sequence value was not updated") )
+
+				mchecks_model = self.pool.get('debit.credit')
+				mchecks_obj=mchecks_model.browse(cr,uid,mchecks_model.search(cr,uid,[('state','=','draft' )],context=None),context=context)
+				nn=self.journal_number(cr,uid,mcheck.id,mcheck.journal_id.id,mcheck.doc_type,context=None)
+				for draft_checks in mchecks_obj:
+					mchecks_model.write(cr, uid, draft_checks.id, {'number':nn}, context=context)
+
+				return self.write(cr, uid, ids, {'state':'validated','number':n,'move_id':move_id, 'actual_comp_rate': currency_rate,'actual_sec_curr_rate': select_journal_currency_rate }, context=context)
+		else:
+			raise osv.except_osv(_('No lines'),_("select more than one line") )
 		
 	def _get_totald(self, cr, uid, ids, field, arg, context=None):
 		result = {}
@@ -330,7 +305,6 @@ class mcheck(osv.Model):
 			result[mcheck.id]=a
 		return result
 
-	#this function calculate the rest of money you can add as debit in lines
 	def _paying_left(self,cr, uid, ids, field, arg, context=None):
 		result = {}
 		tot_lined = 0
@@ -344,13 +318,12 @@ class mcheck(osv.Model):
 					
 			result[mcheck.id]=mcheck.total-(tot_lined-tot_linec)
 		return result
-	#this function change the state of the check and habilitate the date of cancelation to be changed
 	def anulate_voucher(self,cr, uid, ids, context=None):
 		self.write(cr, uid, ids,{'state':'pre_anulated'}, context=context)
-		
-	
-	#this function return the name/code  based in the code of the sequence code asociatedof the sequence of the journal 
+
 	def journal_number(self,cr,uid,ids,journalid,doc_type,context=None):
+		#print '{{'*100
+		#print doc_type
 		if not journalid==False and doc_type !=False:
 			force_company = self.pool.get('res.users').browse(cr, uid, uid).company_id.id#id of the company of the user
 			seq_model = self.pool.get('ir.sequence')
@@ -364,7 +337,7 @@ class mcheck(osv.Model):
 					seq_id = sq.id
 					fl = True
 			if not fl:
-				raise osv.except_osv(_('Configuration Error !'),_("Please Create a sequence code with the code 'checks' or add a sequence for this journal with the code 'checks'!"))	
+				raise osv.except_osv(_('Configuration Error !'),_("Please Create a sequence code with the code '"+str(doc_type)+"' or add a sequence for this journal with the code '"+str(doc_type)+"'"))	
 		
 			if diario.sequence_id:
 				if not diario.sequence_id.active:
@@ -422,17 +395,15 @@ class mcheck(osv.Model):
 		'total': fields.float(string='Total',required=True),
 		#'temporal_code': fields.char(string='Temporal Code',),
 		'doc_type' : fields.selection([
-						('check','Check'),
-						('transference','Transference')],string='Doc. type'),
+						('debit','Debit'),
+						('credit','Credit'),
+						('deposit','Deposit')],string='Type'),
 		'tax_amount':fields.float('Tax Amount', digits_compute=dp.get_precision('Account'), ),
 		'reference': fields.char('Pay to', 
 		                         help="Transaction reference number.", copy=False,required=True),
 		'rest_credit' : fields.function(_paying_left, type='float', string='Debit left', store=False),
-		'commission' : fields.float('Commission'),
 		'actual_comp_rate' : fields.float('Company rate'),
-		'actual_sec_curr_rate' : fields.float('Actual Secundary Currency Rate'),
-		'anulation_date' : fields.date('Date of anulation',  select=True, 
-                           help="Effective date for anulation", ), #date of the anulation of the check
+		'actual_sec_curr_rate' : fields.float('Actual Secundary Currency Rate'), #date of the anulation of the check
 		#'currency_rate' : fields.function(_calculate_currency,type='float')
 		'number': fields.char('Number'),
 		'number_calc': fields.function(_calculate_number, type='char', string='Number', store=False),
@@ -442,26 +413,22 @@ class mcheck(osv.Model):
 			('purchase','Purchase'),
 			('payment','Payment'),
 			('receipt','Receipt'),
-			],'Default Type', ),		
-		'mcheck_ids' :fields.one2many('mcheck.mcheck_name','mcheck_id',string="checks lines"),
-		'move_ids' :fields.one2many('account.move.line','mcheck_id',string="checks lines"),
+			],'Default Type', ),		 
+		'mcheck_ids' :fields.one2many('debit.credit.name','mcheck_id',string="Debit and Credit lines"),
+		'move_ids' :fields.one2many('account.move.line','credit_debit_id',string="Move lines"),
 		'state':fields.selection(
 		    [('draft','Draft'),
-		     ('validated','Validated'),
-			('pre_anulated','Pre-Anulated'),
-		     ('anulated','Anulated')
+		     ('validated','Validated')
 		    ], 'Status', 
 		    help=' * The \'Draft\' status is used when a user is encoding a new and unconfirmed Voucher. \
-		                \n* The \'Pro-forma\' when voucher is in Pro-forma status,voucher does not have an voucher number. \
-		                \n* The \'Posted\' status is used when user create voucher,a voucher number is generated and voucher entries are created in account \
-		                \n* The \'Cancelled\' status is used when user cancel voucher.'),
+		                \n* The \'Validated \' when validated'),
 
 	}
 	_defaults = {
 	'state' : 'draft',
 	'type' : 'payment',
  	'date': lambda *a: time.strftime('%Y-%m-%d'),
-	'doc_type' : 'check'
+	'doc_type' : 'debit'
 		    } 
 	
 	
@@ -666,7 +633,8 @@ class mcheck(osv.Model):
 
 class mcheck_name(osv.Model):
 			
-	_name='mcheck.mcheck_name'
+	_name='debit.credit.name'
+		
 	
 	def onchange_amount_line(self,cr,uid,ids,total,ids_line,context=None):	
 
@@ -676,13 +644,12 @@ class mcheck_name(osv.Model):
 		
 	
 	_columns = {
-		'mcheck_id':fields.many2one('mcheck.mcheck','mcheck'),
+		'mcheck_id':fields.many2one('debit.credit','debit and credit '),
 	        'account_id':fields.many2one('account.account','Account',domain=[('type','not in',['view'])],required=True),
-		'company_id':fields.many2one('res.company','Company'),
 		'name':fields.char('Description',),
 		'amount':fields.float('Amount', digits_compute=dp.get_precision('Account')),
 		'chqmanalitics':fields.many2one("account.analytic.account",string="Check Misc Analiticos"),	
-        	'type':fields.selection([('dr','Debit'),('cr','Credit')], 'Dr/Cr')
+        	'type':fields.selection([('dr','Debit'),('cr','Credit')], 'Dr/Cr'),
 		
 }
 
@@ -692,5 +659,5 @@ class mcheck_name(osv.Model):
 class account_move_line(osv.osv):
 	_inherit = 'account.move.line'
 	_columns = {
-		'mcheck_id':fields.many2one('mcheck.mcheck','mcheck'),
+		'credit_debit_id':fields.many2one('debit.credit','debit.credit'),
 		}

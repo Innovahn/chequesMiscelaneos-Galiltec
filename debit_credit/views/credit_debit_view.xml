@@ -2,12 +2,9 @@
 <openerp>
     <data>
 		
-
-
-		
-		<record model="ir.ui.view" id="view_mcheck_search">
-           		 <field name="name">mcheck.mcheck.search</field>
-           		 <field name="model">mcheck.mcheck</field>
+		<record model="ir.ui.view" id="view_credit_debit_search">
+           		 <field name="name">debit.credit.search</field>
+           		 <field name="model">debit.credit</field>
            		 <field name="arch" type="xml">
 				<search string = 'search'>
 								
@@ -28,46 +25,45 @@
 
  
 
-        <record model="ir.ui.view" id="view_mcheck_form">
-            <field name="name">mcheck.mcheck.form</field>
-            <field name="model">mcheck.mcheck</field>
+        <record model="ir.ui.view" id="view_credit_debit_form">
+            <field name="name">debit.credit.form</field>
+            <field name="model">debit.credit</field>
             <field name="arch" type="xml">
                 <form string="miscellaneous checks">
                   <header>
 
-			<button name="anulate_voucher" string="Invalidate Voucher" type="object" states="validated" />
-			<button name="cancel_voucher" string="Confirm Invalidation" type="object" states="pre_anulated" confirm="Are you sure you want to Invalidate this vaucher?"/>
+			<!--<button name="anulate_voucher" string="Invalidate Voucher" type="object" states="validated"/>
+			<button name="cancel_voucher" string="Confirm Invalidation" type="object" states="pre_anulated" confirm="Are you sure you want to Invalidate this vaucher?"/>-->
 				
 			<button name="action_validate" type="object" string="Validate" states="draft" class="oe_highlight oe_read_only"/>
                       <field name="state" widget="statusbar" statusbar_visible="draft,posted" statusbar_colors='{"validated":"blue"}'/>
                   </header>
                    <sheet string="Accounting Voucher">
-			<h1><field name="number_calc"  class="oe_inline" readonly='1'/> </h1>
+			
                     <group col="4" colspan="4"> 
-                  	 <field name="journal_id" widget="selection" on_change="onchange_journal(journal_id,doc_type)" domain="[('checkmiscelaneous','=',True)]" attrs="{'readonly': [('state','!=','draft')]}" />
-			<field name="date" attrs="{'readonly': [('state','!=','draft')]}"/>
-			<field name="doc_type" on_change="onchange_journal(journal_id,doc_type)"/>
-			 <field name="anulation_date" attrs="{'invisible': [('state','not in',('pre_anulated','anulated'))], 'readonly' : [('state','!=','pre_anulated')]}"/>
+                  	 <field name="journal_id" widget="selection" on_change="onchange_journal(journal_id,doc_type)" domain="[('allow_creditdebit','=',True)]" attrs="{'readonly': [('state','!=','draft')]}" />
+			<field name="number_calc"  class="oe_inline" readonly='1'/> 
+			  
+   			 <field name="date" attrs="{'readonly': [('state','!=','draft')]}"/>
+			<field name="doc_type" on_change="onchange_journal(journal_id,doc_type)" attrs="{'readonly': [('state','!=','draft')]}"/>
+			 
             	     </group>
                     <group col="2" colspan="4">    
 <field name="reference" attrs="{'readonly': [('state','!=','draft')]}"/>
-			<field name="total"  widget="monetary" attrs="{'readonly': [('state','!=','draft')]} " />
-			<field name="commission" widget="monetary" attrs="{'readonly': [('state','!=','draft')]}" />
+			<field name="total"  attrs="{'readonly': [('state','!=','draft')]} " />
                         <field name="name"  attrs="{'readonly': [('state','!=','draft')]}"/>
                         
-             </group> 
+             </group>
 
                     <notebook colspan="4">
                         <page string="Voucher Entry">
                           <field name="mcheck_ids"  mode="tree" widget="one2many_list" attrs="{'readonly': [('state','!=','draft')]}">
 				<tree editable="bottom">
 					
-					<field name="account_id" />
-					<field name="company_id" />
+					<field name="account_id"/>
 					<field name="name"/>
-					<field name="type"/>
 					<field name="chqmanalitics" string="Analitics" domain="[('type','=','normal')]"/>
-					<field name="amount"/>
+					<field name="amount"   />
 				</tree>
 			  </field>
                         </page>
@@ -108,9 +104,9 @@
 
 
 
-        <record model="ir.ui.view" id="view_mcheck_tree">
-            <field name="name">mcheck.mcheck.tree</field>
-            <field name="model">mcheck.mcheck</field>
+        <record model="ir.ui.view" id="view_credit_debit_tree">
+            <field name="name">debit.credit.tree</field>
+            <field name="model">debit.credit</field>
             <field name="arch" type="xml">
                 <tree string="miscellaneous checks" colors="green:state=='draft';blue:state=='validated';red:state=='anulated'" create="true">  
 			<field name="number" />               
@@ -121,34 +117,29 @@
 			<field name="amount"/>
 			<field name="state"/>
 			<!--<field name='temporal_code' string="Temp. Code"/>-->
-
-
-                </tree>
+		</tree>
             </field>
         </record>
 	
-	
-
-		<record id="mcheck_action_form_mcheck" model="ir.actions.act_window">
-				<field name="name">mcheck</field>
-				<field name="res_model">mcheck.mcheck</field>
+	<record id="debit_credit_action_form" model="ir.actions.act_window">
+				<field name="name">debit.credit</field>
+				<field name="res_model">debit.credit</field>
 				<field name="view_type">form</field>
 				<field name="view_mode">tree,form</field>
 				<field name="domain">[]</field>
-				<field name="context">{'mis_check_filter_tot':1}</field>
 				<field name="view_id" eval="False"/>            
 				<field name="help" type="html">
-				  <p class="oe_view_nocontent_create">
-					Click to add a new mcheck.
-				  </p>
-				  <p>
-					With just a quick glance on the Odoo mcheck screen, you
-					can easily find all the information about your each day mcheck;					
-				  </p>
+					  <p class="oe_view_nocontent_create">
+						Click to add a new credit or debit.
+					  </p>
+					  <p>
+						With just a quick glance on the Odoo mcheck screen, you
+						can easily find all the information about your each day debit or credit;					
+				  	   </p>
 				</field>
 		</record>
 
-   <menuitem action="mcheck_action_form_mcheck" id="mcheck_mcheck" parent="account.menu_finance_bank_and_cash" sequence="20" groups="mcheck.group_check_manager"/>
+   <menuitem action="debit_credit_action_form" id="debit_credit" name ="Debitos,Creditos y Depositos" parent="account.menu_finance_bank_and_cash" sequence="20" groups="mcheck.group_check_manager"/>
 
     </data>
 </openerp>

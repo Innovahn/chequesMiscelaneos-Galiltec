@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data>
+<record model="ir.ui.view" id="view_mcheck_form1">
+    <field name="name">mcheck.mcheck.form.inherit1</field>
+    <field name="model">mcheck.mcheck</field>
+    <field name="inherit_id" ref="mcheck.view_mcheck_form"/>
+    <field name="arch" type="xml">
+
+		   <field name="sequence_id" string='sequence'/>
+		
+		
+
+    </field>
+</record>
+    </data>
+</openerp>

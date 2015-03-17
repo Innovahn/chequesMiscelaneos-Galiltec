@@ -34,35 +34,40 @@
             <field name="arch" type="xml">
                 <form string="miscellaneous checks">
                   <header>
-			<button name="cancel_voucher" string="Anulate Voucher" type="object" states="validated" confirm="Are you sure you want to unreconcile this record?"/>
+
+			<button name="anulate_voucher" string="Invalidate Voucher" type="object" states="validated" />
+			<button name="cancel_voucher" string="Confirm Invalidation" type="object" states="pre_anulated" confirm="Are you sure you want to Invalidate this vaucher?"/>
+				
 			<button name="action_validate" type="object" string="Validate" states="draft" class="oe_highlight oe_read_only"/>
                       <field name="state" widget="statusbar" statusbar_visible="draft,posted" statusbar_colors='{"validated":"blue"}'/>
                   </header>
                    <sheet string="Accounting Voucher">
-			
+			<h1><field name="number_calc"  class="oe_inline" readonly='1'/> </h1>
                     <group col="4" colspan="4"> 
-                  	 <field name="journal_id" widget="selection" on_change="onchange_journal(journal_id)" domain="[('checkmiscelaneous','=',True)]" attrs="{'readonly': [('state','!=','draft')]}" />
-			<field name="number"  class="oe_inline" attrs="{'readonly': [('state','!=','validated')]}"/>          
-   			 <field name="date" attrs="{'readonly': [('state','!=','draft')]}"/>
+                  	 <field name="journal_id" widget="selection" on_change="onchange_journal(journal_id,doc_type)" domain="[('checkmiscelaneous','=',True)]" attrs="{'readonly': [('state','!=','draft')]}" />
+			<field name="date" attrs="{'readonly': [('state','!=','draft')]}"/>
+			<field name="doc_type" on_change="onchange_journal(journal_id,doc_type)"/>
+			 <field name="anulation_date" attrs="{'invisible': [('state','not in',('pre_anulated','anulated'))], 'readonly' : [('state','!=','pre_anulated')]}"/>
             	     </group>
                     <group col="2" colspan="4">    
 <field name="reference" attrs="{'readonly': [('state','!=','draft')]}"/>
-			<field name="total"  attrs="{'readonly': [('state','!=','draft')]} " />
+			<field name="total"  widget="monetary" attrs="{'readonly': [('state','!=','draft')]} " />
+			<field name="commission" widget="monetary" attrs="{'readonly': [('state','!=','draft')]}" />
                         <field name="name"  attrs="{'readonly': [('state','!=','draft')]}"/>
                         
-             </group>
+             </group> 
 
                     <notebook colspan="4">
                         <page string="Voucher Entry">
                           <field name="mcheck_ids"  mode="tree" widget="one2many_list" attrs="{'readonly': [('state','!=','draft')]}">
 				<tree editable="bottom">
 					
-					<field name="account_id"/>
+					<field name="account_id" />
+					<field name="company_id" />
 					<field name="name"/>
 					<field name="type"/>
 					<field name="chqmanalitics" string="Analitics" domain="[('type','=','normal')]"/>
-												
-					<field name="amount"  on_change="onchange_amount_line(parent.total,parent.mcheck_ids)"/>
+					<field name="amount"/>
 				</tree>
 			  </field>
                         </page>
@@ -92,6 +97,7 @@
                               
             </group>
  <field name="obs" attrs="{'invisible': [('state','!=','cancel')]}"/>
+<field name="number"  class="oe_inline" invisible='1'/>       
 </group>
                   </sheet>
                 </form>
@@ -114,7 +120,7 @@
                         <field name="reference"/>
 			<field name="amount"/>
 			<field name="state"/>
-			<field name='temporal_code' string="Temp. Code"/>
+			<!--<field name='temporal_code' string="Temp. Code"/>-->
 
 
                 </tree>

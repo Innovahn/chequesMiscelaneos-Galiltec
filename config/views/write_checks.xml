@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data>
+<record model="ir.ui.view" id="view_account_invoice_writing_checks">
+    <field name="name">account.voucher.form.writing.checks</field>
+    <field name="model">account.voucher</field>
+    <field name="inherit_id" ref="account_voucher.view_vendor_payment_form"/>
+    <field name="arch" type="xml">
+	
+		<xpath expr="//field[@name='partner_id']" position="before" string='Payment type'>
+			<field name="next_number" readonly='1'/>
+			<field name="pay_method_type" attrs="{'readonly': [('state','!=','draft')]}" on_change="onchange_journal_id(journal_id,pay_method_type	)"/>
+		</xpath>
+		<xpath expr="//field[@name='name']" position="after" >
+			<field name="number_doc" invisible='1'/>
+		</xpath>
+		<!--th expr="//field[@name='amount']" position="after">
+			<fied name="amount_in_word" />
+		</xpath>-->
+	
+    </field>
+</record>
+    </data>
+</openerp>
