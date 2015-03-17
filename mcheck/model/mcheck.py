@@ -419,7 +419,7 @@ class mcheck(osv.Model):
 		'amountdebit': fields.function(_get_totaldebit,type='char',string='Total', ),
 		'amountcredit': fields.function(_get_totalcredit,type='char',string='Total',),
 		'amounttext': fields.function(_get_totalt,type='char',string='Total',),
-		'total': fields.float(string='Total',required=True),
+		'total': fields.float(string='Total',required=False),
 		#'temporal_code': fields.char(string='Temporal Code',),
 		'doc_type' : fields.selection([
 						('check','Check'),
