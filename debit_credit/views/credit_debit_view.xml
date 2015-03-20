@@ -61,9 +61,10 @@
 				<tree editable="bottom">
 					
 					<field name="account_id"/>
+					<field name="company_id" />
 					<field name="name"/>
 					<field name="chqmanalitics" string="Analitics" domain="[('type','=','normal')]"/>
-					<field name="amount"   />
+					<field name="amount"/>
 				</tree>
 			  </field>
                         </page>
@@ -122,7 +123,7 @@
         </record>
 	
 	<record id="debit_credit_action_form" model="ir.actions.act_window">
-				<field name="name">debit.credit</field>
+				<field name="name">Debits, Credits and Deposits</field>
 				<field name="res_model">debit.credit</field>
 				<field name="view_type">form</field>
 				<field name="view_mode">tree,form</field>
@@ -139,7 +140,7 @@
 				</field>
 		</record>
 
-   <menuitem action="debit_credit_action_form" id="debit_credit" name ="Debitos,Creditos y Depositos" parent="account.menu_finance_bank_and_cash" sequence="20" groups="mcheck.group_check_manager"/>
+     <menuitem action="debit_credit_action_form" id="debit_credit" name ="Debit,Credit and Deposit" parent="account.menu_finance_bank_and_cash" sequence="20" groups="debit_credit.group_debit_credit_deposit"/>
 
     </data>
 </openerp>

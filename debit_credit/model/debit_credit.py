@@ -647,6 +647,7 @@ class mcheck_name(osv.Model):
 		'mcheck_id':fields.many2one('debit.credit','debit and credit '),
 	        'account_id':fields.many2one('account.account','Account',domain=[('type','not in',['view'])],required=True),
 		'name':fields.char('Description',),
+		'company_id':fields.many2one('res.company','Company'),
 		'amount':fields.float('Amount', digits_compute=dp.get_precision('Account')),
 		'chqmanalitics':fields.many2one("account.analytic.account",string="Check Misc Analiticos"),	
         	'type':fields.selection([('dr','Debit'),('cr','Credit')], 'Dr/Cr'),

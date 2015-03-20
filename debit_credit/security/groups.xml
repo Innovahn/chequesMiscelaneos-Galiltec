@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<openerp>
-	<data>
-		<record id="group_debit_credit" model="res.groups">
-			<field name="name">Allow Debit and Credit checks</field>
-		</record>
-	</data>
-</openerp>
+	<openerp>
+		<data>
+	
+			<record id="group_debit_credit_deposit" model="res.groups">
+				<field name="name">Debits, Credits and deposits</field>
+			</record>
+		</data>
+	</openerp>

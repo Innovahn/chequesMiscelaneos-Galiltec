@@ -194,33 +194,36 @@ class mcheck(osv.Model):
 						lines_array.append(lines_col)#adding movline to an array
 					if mcheck.commission > 0:#for commission lines creation
 						
-				
-						for i in [1,2]:				
-			 				com_line = {}
-							com_line['move_id']=move_id
-							com_line['name']='/Commission/'+str(mcheck.name)
-							com_line['amount_currency'] = 0
-							com_line['currency_id'] = None
-							if i==1:
-								
-								com_line['account_id']=mcheck.journal_id.default_credit_account_id.id
-								if not select_journal_currency_id == currency_id:
-									com_line['amount_currency']=(mcheck.commission * (1/select_journal_currency_rate))*select_journal_currency_rate	
-									com_line['currency_id'] = select_journal_currency_id
-								com_line['debit']=0
-								com_line['credit']=round(((mcheck.commission * (1/select_journal_currency_rate))*currency_rate),dec_prec.digits) 
-							else:
-								if mcheck.journal_id.commission_account:
-									com_line['account_id']=mcheck.journal_id.commission_account.id
+						if mcheck.journal_id.commission_account.id:
+
+							for i in [1,2]:				
+			 					com_line = {}
+								com_line['move_id']=move_id
+								com_line['name']='/Commission/'+str(mcheck.name)
+								com_line['amount_currency'] = 0
+								com_line['currency_id'] = None
+								if i==1:
+									
+									com_line['account_id']=mcheck.journal_id.default_credit_account_id.id
+									if not select_journal_currency_id == currency_id:
+										com_line['amount_currency']=(mcheck.commission * (1/select_journal_currency_rate))*select_journal_currency_rate	
+										com_line['currency_id'] = select_journal_currency_id
+									com_line['debit']=0
+									com_line['credit']=round(((mcheck.commission * (1/select_journal_currency_rate))*currency_rate),dec_prec.digits) 
 								else:
-									com_line['account_id']=mcheck.journal_id.default_debit_account_id.id
-								if not select_journal_currency_id == currency_id:
-									com_line ['amount_currency'] = (mcheck.commission * (1/select_journal_currency_rate))*(-1)*select_journal_currency_rate
-									com_line ['currency_id'] = select_journal_currency_id
-								com_line['debit']=round((mcheck.commission * (1/select_journal_currency_rate))*currency_rate,dec_prec.digits)
-								com_line['credit']=0
-							
-							lines_array.append(com_line)
+									if mcheck.journal_id.commission_account:
+										com_line['account_id']=mcheck.journal_id.commission_account.id
+									else:
+										com_line['account_id']=mcheck.journal_id.default_debit_account_id.id
+									if not select_journal_currency_id == currency_id:
+										com_line ['amount_currency'] = (mcheck.commission * (1/select_journal_currency_rate))*(-1)*select_journal_currency_rate
+										com_line ['currency_id'] = select_journal_currency_id
+									com_line['debit']=round((mcheck.commission * (1/select_journal_currency_rate))*currency_rate,dec_prec.digits)
+									com_line['credit']=0
+								
+								lines_array.append(com_line)
+						else:
+							raise osv.except_osv(_('Error!'),_("The selected journal must have a commission account asociadted") )
 					mline_data={}
 					mline_data['move_id']=move_id
 					mline_data['name'] = mcheck.name

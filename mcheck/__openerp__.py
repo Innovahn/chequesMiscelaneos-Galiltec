@@ -11,7 +11,8 @@
 		'views/mcheck_view.xml',	
 		'views/reporte1.xml' ,
 			'views/layouts.xml' ,
-			'views/mcheck_reports.xml'
+			'views/mcheck_reports.xml',
+			'reports/reporte2.xml'
 	],
 	'update_xml' : [
 			'security/groups.xml',
@@ -20,3 +21,5 @@
 	'depends': ['base','sale','account_voucher'],
     	'installable': True,
 }
+
+

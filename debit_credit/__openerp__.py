@@ -14,10 +14,10 @@
 		#'views/mcheck_reports.xml'
 			
 	],
-	#'update_xml' : [
-	#		'security/groups.xml',
-	#		'security/ir.model.access.csv',
-	#],
+	'update_xml' : [
+			'security/groups.xml',
+			'security/ir.model.access.csv',
+	],
 	'depends': ['base','sale','account_voucher'],
     	'installable': True,
 }

@@ -10,14 +10,16 @@
            		 <field name="model">mcheck.mcheck</field>
            		 <field name="arch" type="xml">
 				<search string = 'search'>
-								
+
+				<field name="name" filter_domain="[('number', 'ilike', self)]" string="Number"/>			
 				<field name="name" filter_domain="[('reference', 'ilike', self)]" string="reference"/>
 				<field name="name" filter_domain="[('journal_id', 'ilike', self)]" string="journal"/>
+				
 					  <group expand="0" string="Group By">
                        				   <filter string="Month"  domain="[]" context="{'group_by':'date'}"/>
                      				   <filter string="State" domain="[]" context="{'group_by':'state'}"/>
 						   <filter string="Journal" domain="[]" context="{'group_by':'journal_id'}"/>
-						   <filter string="Issued to" domain="[]" context="{'group_by':'ref'}"/>
+						   <filter string="Issued to" domain="[]" context="{'group_by':'reference'}"/>
                    			 </group>
 				
 				</search>
@@ -65,9 +67,9 @@
 					<field name="account_id" />
 					<field name="company_id" />
 					<field name="name"/>
-					<field name="type"/>
 					<field name="chqmanalitics" string="Analitics" domain="[('type','=','normal')]"/>
 					<field name="amount"/>
+					<field name="type"/>
 				</tree>
 			  </field>
                         </page>
