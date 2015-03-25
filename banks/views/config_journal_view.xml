@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data>
+<record model="ir.ui.view" id="view_pos_account_journal_form1">
+    <field name="name">account.journal.form.inherit4</field>
+    <field name="model">account.journal</field>
+    <field name="inherit_id" ref="account.view_account_journal_form"/>
+    <field name="arch" type="xml">
+
+	<!--<xpath expr="//field[@string='sequence_id']" position="replace">	
+			<field name="sequence_id" attrs="{invisible :[('allow_multi_sequence','=',True)]}"/>
+
+	</xpath>-->
+	<xpath expr="//field[@name='allow_date']" position="after" string='debit and credit'>
+		<field name="allow_creditdebit" attrs="{'invisible' : [('type', 'not in', ['bank'])] }"/>
+	</xpath>
+	<xpath expr="//field[@name='currency']" position="before" >
+			<field name="commission_account" domain="[('type','!=','view')]"/>
+	</xpath>
+	
+	<xpath expr="//field[@name='allow_date']" position="before">
+			<field name="checkmiscelaneous" attrs="{'invisible' : [('type', 'not in', ['bank'])] }"/>
+	</xpath>
+	<xpath expr="//field[@name='allow_date']" position="after" string='Allow Multi-Sequence'>
+		<field name="allow_multi_sequence"  on_change="onchange_multy_currency(allow_multi_sequence)"/>
+	</xpath>
+	<xpath expr="//page[@string='Cash Registers']" position="after">
+		<page string="Sequences" attrs="{'invisible': [('allow_multi_sequence','!=',True)]}">
+				<group >
+					 <separator  string="Sequences"/>
+				    <field name="sequence_ids" on_change="onchange_multy_currency(allow_multi_sequence)">
+					 
+					<tree>
+					<field name="name" />
+					<field name="prefix" />
+					<field name="suffix" />
+				
+					</tree>
+				    </field>
+				</group>
+		</page>
+	</xpath>
+
+    </field>
+</record>
+    </data>
+</openerp>
